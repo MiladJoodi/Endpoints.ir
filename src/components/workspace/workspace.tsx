@@ -259,10 +259,10 @@ function WorkspaceInner() {
           </div>
 
           <div className="grid min-h-0 flex-1 grid-rows-[minmax(180px,36%)_minmax(260px,1fr)] lg:grid-rows-1 lg:grid-cols-[minmax(300px,38%)_minmax(0,1fr)]">
-            <div className="min-h-0 overflow-auto border-b border-border/60 bg-card/40 p-3 lg:border-r lg:border-b-0 dark:bg-card/25 md:p-4">
+            <div className="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto border-b border-border/60 bg-card/40 p-3 lg:border-r lg:border-b-0 dark:bg-card/25 md:p-4">
               <RequestConfig />
             </div>
-            <div className="min-h-0 overflow-hidden p-3 md:p-4">
+            <div className="min-h-0 min-w-0 overflow-hidden p-3 md:p-4">
               <ResponseViewer />
             </div>
           </div>

@@ -17,6 +17,9 @@ interface KeyValueEditorProps {
   suggestions?: string[];
 }
 
+const ROW =
+  "grid min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_1.75rem_1.75rem] items-center gap-1";
+
 export function KeyValueEditor({
   pairs,
   onChange,
@@ -45,25 +48,27 @@ export function KeyValueEditor({
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="grid grid-cols-[28px_1fr_1fr_28px_28px] gap-1.5 px-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="flex min-w-0 flex-col gap-1.5 overflow-x-hidden">
+      <div
+        className={cn(
+          ROW,
+          "px-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase",
+        )}
+      >
         <span />
-        <span>Key</span>
-        <span>Value</span>
+        <span className="min-w-0 truncate">Key</span>
+        <span className="min-w-0 truncate">Value</span>
         <span className="sr-only">Enabled</span>
         <span className="sr-only">Delete</span>
       </div>
       {pairs.map((pair, index) => (
         <div
           key={pair.id}
-          className={cn(
-            "grid grid-cols-[28px_1fr_1fr_28px_28px] items-center gap-1.5",
-            !pair.enabled && "opacity-50",
-          )}
+          className={cn(ROW, !pair.enabled && "opacity-50")}
         >
           <button
             type="button"
-            className="flex size-7 items-center justify-center text-muted-foreground hover:text-foreground"
+            className="inline-flex size-7 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
             aria-label="Reorder"
             onClick={() => move(index, index - 1)}
             onContextMenu={(e) => {
@@ -78,7 +83,7 @@ export function KeyValueEditor({
             value={pair.key}
             onChange={(e) => update(pair.id, { key: e.target.value })}
             placeholder={keyPlaceholder}
-            className="font-mono-ui h-8 text-xs"
+            className="font-mono-ui h-8 min-w-0 text-xs"
             list={suggestions ? `kv-suggest-${pair.id}` : undefined}
             aria-label="Key"
           />
@@ -94,10 +99,10 @@ export function KeyValueEditor({
             value={pair.value}
             onChange={(e) => update(pair.id, { value: e.target.value })}
             placeholder={valuePlaceholder}
-            className="font-mono-ui h-8 text-xs"
+            className="font-mono-ui h-8 min-w-0 text-xs"
             aria-label="Value"
           />
-          <div className="flex items-center justify-center">
+          <div className="flex size-7 items-center justify-center">
             <Checkbox
               checked={pair.enabled}
               onCheckedChange={(checked) =>
@@ -109,7 +114,8 @@ export function KeyValueEditor({
           <Button
             type="button"
             variant="ghost"
-            size="icon-sm"
+            size="icon-xs"
+            className="size-7"
             onClick={() => remove(pair.id)}
             aria-label="Delete row"
           >

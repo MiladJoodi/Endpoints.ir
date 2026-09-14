@@ -48,8 +48,11 @@ export function RequestConfig() {
   }, [request.body.type, request.body.json]);
 
   return (
-    <Tabs defaultValue="params" className="min-h-0 flex-1 gap-3">
-      <TabsList variant="line" className="w-full justify-start">
+    <Tabs defaultValue="params" className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-x-hidden">
+      <TabsList
+        variant="line"
+        className="h-auto w-full min-w-0 flex-wrap justify-start gap-1"
+      >
         <TabsTrigger value="params">Params</TabsTrigger>
         <TabsTrigger value="auth">Auth</TabsTrigger>
         <TabsTrigger value="headers">Headers</TabsTrigger>
@@ -57,7 +60,7 @@ export function RequestConfig() {
         <TabsTrigger value="tests">Tests</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="params" className="mt-0 overflow-auto">
+      <TabsContent value="params" className="mt-0 min-w-0 overflow-x-hidden overflow-y-auto">
         <KeyValueEditor
           pairs={request.params}
           onChange={(params) =>
@@ -70,7 +73,7 @@ export function RequestConfig() {
         />
       </TabsContent>
 
-      <TabsContent value="auth" className="mt-0 space-y-3 overflow-auto">
+      <TabsContent value="auth" className="mt-0 min-w-0 space-y-3 overflow-x-hidden overflow-y-auto">
         <div className="max-w-xs space-y-1.5">
           <Label htmlFor="auth-type">Type</Label>
           <Select
@@ -220,7 +223,7 @@ export function RequestConfig() {
         ) : null}
       </TabsContent>
 
-      <TabsContent value="headers" className="mt-0 overflow-auto">
+      <TabsContent value="headers" className="mt-0 min-w-0 overflow-x-hidden overflow-y-auto">
         <KeyValueEditor
           pairs={request.headers}
           onChange={(headers) => setRequest((prev) => ({ ...prev, headers }))}
@@ -228,7 +231,7 @@ export function RequestConfig() {
         />
       </TabsContent>
 
-      <TabsContent value="body" className="mt-0 space-y-3 overflow-auto">
+      <TabsContent value="body" className="mt-0 min-w-0 space-y-3 overflow-x-hidden overflow-y-auto">
         <div className="max-w-xs space-y-1.5">
           <Label>Body type</Label>
           <Select
@@ -384,7 +387,7 @@ export function RequestConfig() {
         ) : null}
       </TabsContent>
 
-      <TabsContent value="tests" className="mt-0 space-y-3 overflow-auto">
+      <TabsContent value="tests" className="mt-0 min-w-0 space-y-3 overflow-x-hidden overflow-y-auto">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">
             Run after each send. JSON path uses dots, e.g. <code>0.name</code> or{" "}

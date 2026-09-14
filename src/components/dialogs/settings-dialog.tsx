@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { PromptDialog } from "@/components/dialogs/app-dialogs";
+import { getAppShortcuts } from "@/lib/shortcuts";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +30,7 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { preferences, setPreferences } = useWorkspace();
   const [customTimeoutOpen, setCustomTimeoutOpen] = useState(false);
+  const shortcuts = useMemo(() => getAppShortcuts(), []);
 
   return (
     <>
@@ -92,6 +94,23 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 value={preferences.timeoutMs}
                 className="font-mono-ui"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Keyboard shortcuts</Label>
+              <ul className="divide-y divide-border rounded-lg border border-border text-sm">
+                {shortcuts.map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 px-3 py-2"
+                  >
+                    <span className="text-foreground">{s.action}</span>
+                    <kbd className="shrink-0 rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono-ui text-[11px] text-muted-foreground">
+                      {s.keys}
+                    </kbd>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <p className="text-xs text-muted-foreground">
