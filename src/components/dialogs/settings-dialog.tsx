@@ -86,9 +86,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   custom: "Custom…",
                   ...(![10_000, 30_000, 60_000].includes(preferences.timeoutMs)
                     ? {
-                        [String(preferences.timeoutMs)]:
-                          `${preferences.timeoutMs / 1000} seconds`,
-                      }
+                      [String(preferences.timeoutMs)]:
+                        `${preferences.timeoutMs / 1000} seconds`,
+                    }
                     : {}),
                 }}
                 onValueChange={(value) => {
@@ -123,9 +123,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 Questions, feedback, or partnership — email us.
               </p>
               <div>
-                <p className="mb-1 text-xs font-medium text-muted-foreground">
-                  Email
-                </p>
                 <div className="flex items-center gap-1.5">
                   <a
                     href={`mailto:${CONTACT_EMAIL}`}
