@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
   }
 
   const resend = new Resend(apiKey);
-  const subject = `Contact from ${name}`;
+  const subject = `Endpoints ${name}`;
   const text = [
     `Name: ${name}`,
     `Email: ${email}`,
