@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { TopBar } from "@/components/app-shell/top-bar";
 import { Sidebar } from "@/components/app-shell/sidebar";
 import { RequestBar } from "@/components/request/request-bar";
@@ -13,7 +13,6 @@ import {
   useWorkspace,
   WorkspaceProvider,
 } from "@/components/workspace/workspace-provider";
-import { formatJson } from "@/lib/http/request";
 import {
   Sheet,
   SheetContent,
@@ -37,13 +36,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const CommandPalette = dynamic(
-  () =>
-    import("@/components/command-palette/command-palette").then(
-      (m) => m.CommandPalette,
-    ),
-  { ssr: false },
-);
 const ImportCurlDialog = dynamic(
   () =>
     import("@/components/dialogs/import-curl-dialog").then(
@@ -75,6 +67,11 @@ const SettingsDialog = dynamic(
     import("@/components/dialogs/settings-dialog").then((m) => m.SettingsDialog),
   { ssr: false },
 );
+const ContactDialog = dynamic(
+  () =>
+    import("@/components/dialogs/contact-dialog").then((m) => m.ContactDialog),
+  { ssr: false },
+);
 const PromptDialog = dynamic(
   () =>
     import("@/components/dialogs/app-dialogs").then((m) => m.PromptDialog),
@@ -86,13 +83,10 @@ function WorkspaceInner() {
     ready,
     request,
     setRequest,
-    sendRequest,
     saveRequest,
     quickSaveRequest,
     collections,
     createCollection,
-    commandOpen,
-    setCommandOpen,
     mobileSidebarOpen,
     setMobileSidebarOpen,
   } = useWorkspace();
@@ -102,6 +96,7 @@ function WorkspaceInner() {
   const [codegenOpen, setCodegenOpen] = useState(false);
   const [envOpen, setEnvOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveCollectionId, setSaveCollectionId] = useState<string>("");
@@ -114,56 +109,11 @@ function WorkspaceInner() {
     [collections],
   );
 
-  const openSaveChooser = (asNew = false) => {
-    setSaveName(request.name || "Untitled request");
-    setSaveCollectionId(request.collectionId || collections[0]?.id || "");
-    setSaveAsNew(asNew);
-    setSaveOpen(true);
-  };
-
   const handleQuickSave = async () => {
     await quickSaveRequest();
     setJustSaved(true);
     window.setTimeout(() => setJustSaved(false), 1200);
   };
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const meta = e.metaKey || e.ctrlKey;
-      if (meta && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCommandOpen(!commandOpen);
-      }
-      if (meta && e.key === "Enter") {
-        // Request URL input handles this itself to avoid double-send
-        const tag = (e.target as HTMLElement | null)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA") return;
-        e.preventDefault();
-        void sendRequest();
-      }
-      if (meta && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        if (e.shiftKey) openSaveChooser(true);
-        else void handleQuickSave();
-      }
-      if (meta && e.shiftKey && e.key.toLowerCase() === "f") {
-        if (request.body.type === "json") {
-          e.preventDefault();
-          try {
-            setRequest((prev) => ({
-              ...prev,
-              body: { ...prev.body, json: formatJson(prev.body.json ?? "") },
-            }));
-          } catch {
-            /* ignore */
-          }
-        }
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- stable handlers via latest closure
-  }, [commandOpen, request.body.type, sendRequest, setCommandOpen, setRequest]);
 
   if (!ready) {
     return (
@@ -181,6 +131,7 @@ function WorkspaceInner() {
         onGenerateCode={() => setCodegenOpen(true)}
         onEnvironments={() => setEnvOpen(true)}
         onSettings={() => setSettingsOpen(true)}
+        onContact={() => setContactOpen(true)}
         onSave={() => void handleQuickSave()}
       />
 
@@ -190,7 +141,7 @@ function WorkspaceInner() {
         </div>
 
         <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-          <SheetContent side="left" className="w-[300px] p-0">
+          <SheetContent side="left" className="w-[min(300px,88vw)] max-w-full p-0">
             <SheetHeader className="sr-only">
               <SheetTitle>Sidebar</SheetTitle>
             </SheetHeader>
@@ -201,13 +152,13 @@ function WorkspaceInner() {
         <main className="flex min-w-0 flex-1 flex-col">
           <RequestTabs />
           <div className="border-b border-border/80 px-3 py-3 md:px-4">
-            <div className="mb-2 flex items-center gap-2">
+            <div className="mb-2 flex min-w-0 flex-wrap items-center gap-2">
               <Input
                 value={request.name}
                 onChange={(e) =>
                   setRequest((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="h-8 max-w-xs border-border bg-card px-2.5 text-sm font-medium shadow-none"
+                className="h-8 min-w-0 max-w-full flex-1 border-border bg-card px-2.5 text-sm font-medium shadow-none sm:max-w-xs sm:flex-none"
                 aria-label="Request name"
               />
 
@@ -218,7 +169,6 @@ function WorkspaceInner() {
                     items={collectionItems}
                     onValueChange={(value) => {
                       if (!value || value === request.collectionId) return;
-                      // Move — same request id, new collection only (never asNew)
                       setRequest((prev) => ({
                         ...prev,
                         collectionId: value,
@@ -227,7 +177,7 @@ function WorkspaceInner() {
                     }}
                   >
                     <SelectTrigger
-                      className="h-8 w-[9.5rem] text-xs"
+                      className="h-8 w-full max-w-[11rem] text-xs sm:w-[9.5rem]"
                       aria-label="Collection"
                     >
                       <SelectValue />
@@ -240,7 +190,7 @@ function WorkspaceInner() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="hidden text-[11px] text-muted-foreground sm:inline">
                     {justSaved ? "Saved" : "Auto-saves"}
                   </span>
                 </>
@@ -248,7 +198,7 @@ function WorkspaceInner() {
                 <Button
                   type="button"
                   size="sm"
-                  className="h-8"
+                  className="h-8 shrink-0"
                   onClick={() => void handleQuickSave()}
                 >
                   Save
@@ -258,22 +208,17 @@ function WorkspaceInner() {
             <RequestBar />
           </div>
 
-          <div className="grid min-h-0 flex-1 grid-rows-[minmax(180px,36%)_minmax(260px,1fr)] lg:grid-rows-1 lg:grid-cols-[minmax(300px,38%)_minmax(0,1fr)]">
-            <div className="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto border-b border-border/60 bg-card/40 p-3 lg:border-r lg:border-b-0 dark:bg-card/25 md:p-4">
+          <div className="grid min-h-0 flex-1 grid-rows-[minmax(200px,42%)_minmax(220px,1fr)] lg:grid-rows-1 lg:grid-cols-[minmax(280px,38%)_minmax(0,1fr)]">
+            <div className="min-h-0 min-w-0 overflow-x-hidden overflow-y-auto border-b border-border/60 bg-card/40 p-2.5 sm:p-3 lg:border-r lg:border-b-0 dark:bg-card/25 md:p-4">
               <RequestConfig />
             </div>
-            <div className="min-h-0 min-w-0 overflow-hidden p-3 md:p-4">
+            <div className="min-h-0 min-w-0 overflow-hidden p-2.5 sm:p-3 md:p-4">
               <ResponseViewer />
             </div>
           </div>
         </main>
       </div>
 
-      <CommandPalette
-        onImportCurl={() => setImportOpen(true)}
-        onEnvironments={() => setEnvOpen(true)}
-        onSave={() => void handleQuickSave()}
-      />
       <ImportCurlDialog open={importOpen} onOpenChange={setImportOpen} />
       <ImportCollectionDialog
         open={importCollectionOpen}
@@ -282,6 +227,7 @@ function WorkspaceInner() {
       <CodegenDialog open={codegenOpen} onOpenChange={setCodegenOpen} />
       <EnvironmentsDialog open={envOpen} onOpenChange={setEnvOpen} />
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
 
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogContent className="sm:max-w-md">

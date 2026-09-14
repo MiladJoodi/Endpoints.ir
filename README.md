@@ -13,7 +13,6 @@ Open the app and send a request immediately — no account, no database, no clou
 - Secure server proxy with SSRF protection, rate limits, timeouts, and redirect validation
 - Collections, history, and environments with `{{variables}}`
 - cURL import / cURL & JSON export
-- Command palette (`Ctrl/Cmd+K`) and keyboard shortcuts
 - Dark / light / system themes
 - IndexedDB persistence — data stays on the device
 

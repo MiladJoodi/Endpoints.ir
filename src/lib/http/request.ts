@@ -159,15 +159,15 @@ export function collectEnabledHeaders(
 export function methodColorClass(method: HttpMethod): string {
   switch (method) {
     case "GET":
-      return "text-emerald-600 dark:text-emerald-400";
+      return "text-emerald-700 dark:text-emerald-400";
     case "POST":
-      return "text-amber-600 dark:text-amber-400";
+      return "text-amber-700 dark:text-amber-400";
     case "PUT":
-      return "text-sky-600 dark:text-sky-400";
+      return "text-blue-700 dark:text-blue-400";
     case "PATCH":
-      return "text-violet-600 dark:text-violet-400";
+      return "text-teal-700 dark:text-teal-400";
     case "DELETE":
-      return "text-rose-600 dark:text-rose-400";
+      return "text-red-700 dark:text-red-400";
     default:
       return "text-muted-foreground";
   }

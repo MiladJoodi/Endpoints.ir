@@ -244,6 +244,7 @@ export function Sidebar() {
 
       <div className="border-b border-sidebar-border p-2">
         <Input
+          clearable
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Filter…"

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Download,
+  Mail,
   Menu,
   MoreHorizontal,
   Moon,
@@ -15,7 +16,6 @@ import {
 import { toast } from "sonner";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { requestToCurl } from "@/lib/export/format";
-import { modKeyLabel } from "@/lib/shortcuts";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,13 +26,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface TopBarProps {
   onImportCurl: () => void;
@@ -40,6 +33,7 @@ interface TopBarProps {
   onGenerateCode: () => void;
   onEnvironments: () => void;
   onSettings: () => void;
+  onContact: () => void;
   onSave: () => void;
 }
 
@@ -53,11 +47,11 @@ export function TopBar({
   onGenerateCode,
   onEnvironments,
   onSettings,
+  onContact,
   onSave,
 }: TopBarProps) {
   const {
     setMobileSidebarOpen,
-    setCommandOpen,
     environments,
     preferences,
     setActiveEnvironmentId,
@@ -191,7 +185,7 @@ export function TopBar({
   );
 
   return (
-    <header className="flex h-12 min-w-0 shrink-0 items-center gap-1.5 overflow-hidden border-b border-border/60 bg-background/85 px-2 backdrop-blur-md sm:gap-2 sm:px-3 md:px-4">
+    <header className="flex h-12 min-w-0 shrink-0 items-center gap-1.5 overflow-hidden border-b border-border/80 bg-background/90 px-2 backdrop-blur-md sm:gap-2 sm:px-3 md:px-4">
       <Button
         type="button"
         size="icon-sm"
@@ -203,40 +197,48 @@ export function TopBar({
         <Menu className="size-4" />
       </Button>
 
-      <h1 className="min-w-0 truncate text-[15px] font-semibold tracking-tight text-foreground">
+      <h1 className="min-w-0 truncate text-[15px] font-bold tracking-tight text-foreground">
         Endpoints.ir
       </h1>
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-0.5 sm:gap-1">
         {/* Desktop / tablet actions */}
         <div className="hidden items-center gap-1 md:flex">
-          <Select
-            value={preferences.activeEnvironmentId ?? "none"}
-            items={{
-              none: "No environment",
-              ...Object.fromEntries(environments.map((env) => [env.id, env.name])),
-            }}
-            onValueChange={(value) => {
-              if (!value || value === "none") setActiveEnvironmentId(null);
-              else setActiveEnvironmentId(value);
-            }}
-          >
-            <SelectTrigger className="h-8 w-[8.5rem] text-xs" aria-label="Environment">
-              <SelectValue placeholder="No environment" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No environment</SelectItem>
-              {environments.map((env) => (
-                <SelectItem key={env.id} value={env.id}>
-                  {env.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button type="button" size="sm" variant="ghost" onClick={onEnvironments}>
-            Env
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="inline-flex h-8 max-w-[11rem] cursor-pointer items-center gap-1.5 rounded-md border border-border/80 bg-card px-2.5 text-xs text-foreground hover:bg-muted"
+              aria-label="Environment"
+            >
+              <span className="truncate">
+                {environments.find((e) => e.id === preferences.activeEnvironmentId)
+                  ?.name ?? "No environment"}
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-52">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Active</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setActiveEnvironmentId(null)}>
+                  {preferences.activeEnvironmentId
+                    ? "No environment"
+                    : "No environment ✓"}
+                </DropdownMenuItem>
+                {environments.map((env) => (
+                  <DropdownMenuItem
+                    key={env.id}
+                    onClick={() => setActiveEnvironmentId(env.id)}
+                  >
+                    {preferences.activeEnvironmentId === env.id
+                      ? `${env.name} ✓`
+                      : env.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onEnvironments}>
+                Manage environments…
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
             type="button"
@@ -285,11 +287,10 @@ export function TopBar({
             type="button"
             size="icon-sm"
             variant="ghost"
-            className="hidden font-mono-ui text-[10px] tracking-tight lg:inline-flex"
-            aria-label="Open command palette"
-            onClick={() => setCommandOpen(true)}
+            aria-label="Contact us"
+            onClick={onContact}
           >
-            {modKeyLabel()}K
+            <Mail className="size-3.5" />
           </Button>
 
           <Button
@@ -329,35 +330,13 @@ export function TopBar({
                   Environments…
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              {environments.length > 0 ? (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Active environment</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setActiveEnvironmentId(null)}>
-                      {preferences.activeEnvironmentId
-                        ? "No environment"
-                        : "No environment ✓"}
-                    </DropdownMenuItem>
-                    {environments.map((env) => (
-                      <DropdownMenuItem
-                        key={env.id}
-                        onClick={() => setActiveEnvironmentId(env.id)}
-                      >
-                        {preferences.activeEnvironmentId === env.id
-                          ? `${env.name} ✓`
-                          : env.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuGroup>
-                </>
-              ) : null}
               <DropdownMenuSeparator />
               {importExportItems}
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={toggleTheme}>{themeLabel}</DropdownMenuItem>
                 <DropdownMenuItem onClick={onSettings}>Settings…</DropdownMenuItem>
+                <DropdownMenuItem onClick={onContact}>Contact us…</DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>

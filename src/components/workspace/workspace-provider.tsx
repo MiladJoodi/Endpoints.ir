@@ -74,11 +74,11 @@ interface WorkspaceContextValue {
   setSidebarTab: (tab: SidebarTab) => void;
   mobileSidebarOpen: boolean;
   setMobileSidebarOpen: (open: boolean) => void;
-  commandOpen: boolean;
-  setCommandOpen: (open: boolean) => void;
   sendRequest: () => Promise<void>;
   cancelRequest: () => void;
   newRequest: () => void;
+  /** Clear editor fields + response on the active tab (keeps id / collection). */
+  resetRequest: () => void;
   loadRequest: (req: HttpRequest) => void;
   saveRequest: (
     collectionId?: string,
@@ -161,7 +161,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [sending, setSending] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("collections");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [commandOpen, setCommandOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const sendingRef = useRef(false);
   const persistRequestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -551,6 +550,27 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       updatedAt: Date.now(),
     }));
     patchActiveTab({ sendError: null });
+  }, [setRequest, patchActiveTab]);
+
+  const resetRequest = useCallback(() => {
+    abortRef.current?.abort();
+    sendingRef.current = false;
+    setSending(false);
+    setRequest((prev) => {
+      const blank = createEmptyRequest({
+        id: prev.id,
+        name: prev.name || "Untitled request",
+        collectionId: prev.collectionId,
+        folderId: prev.folderId,
+        createdAt: prev.createdAt,
+      });
+      return { ...blank, updatedAt: Date.now() };
+    });
+    patchActiveTab({
+      response: null,
+      sendError: null,
+      assertionResults: undefined,
+    });
   }, [setRequest, patchActiveTab]);
 
   const sendSampleUrl = useCallback(
@@ -1229,11 +1249,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setSidebarTab,
     mobileSidebarOpen,
     setMobileSidebarOpen,
-    commandOpen,
-    setCommandOpen,
     sendRequest,
     cancelRequest,
     newRequest,
+    resetRequest,
     loadRequest,
     saveRequest,
     quickSaveRequest,

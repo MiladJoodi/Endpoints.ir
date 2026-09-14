@@ -132,15 +132,19 @@ export function EnvironmentsDialog({ open, onOpenChange }: EnvironmentsDialogPro
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-2xl">
-          <DialogHeader className="border-b border-border/70 px-4 py-3">
+        <DialogContent className="flex max-h-[min(85vh,100dvh)] w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+          <DialogHeader className="shrink-0 space-y-1.5 border-b border-border/70 px-4 py-4 pr-12">
             <DialogTitle>Environments</DialogTitle>
-            <DialogDescription>
-              Pick one as active. Its variables fill {"{{likeThis}}"} in your requests.
+            <DialogDescription className="text-pretty">
+              Choose an active environment. Its variables replace{" "}
+              <code className="font-mono-ui rounded bg-muted px-1 py-0.5 text-[11px]">
+                {"{{likeThis}}"}
+              </code>{" "}
+              in URLs, headers, and body.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-4 py-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-4 py-4">
             <div className="flex flex-wrap items-center gap-2">
               {environments.map((env) => {
                 const isSelected = env.id === selectedId;
@@ -233,8 +237,8 @@ export function EnvironmentsDialog({ open, onOpenChange }: EnvironmentsDialogPro
             )}
           </div>
 
-          <DialogFooter className="border-t border-border/70 px-4 py-3 sm:justify-between">
-            <p className="text-xs text-muted-foreground">
+          <DialogFooter className="mx-0 mb-0 shrink-0 gap-3 rounded-none border-t border-border/70 bg-muted/40 px-4 py-3 sm:justify-between">
+            <p className="min-h-4 self-center text-xs text-muted-foreground">
               {justSaved
                 ? "Saved"
                 : dirty

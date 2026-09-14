@@ -49,8 +49,9 @@ export function RequestTabs() {
             <button
               type="button"
               className={cn(
-                "relative inline-flex size-7 shrink-0 items-center justify-center rounded-sm hover:bg-muted",
-                active ? "opacity-70" : "opacity-0 group-hover:opacity-70 focus-visible:opacity-70",
+                "inline-flex size-7 shrink-0 items-center justify-center rounded-sm hover:bg-muted",
+                "opacity-70 sm:opacity-0 sm:group-hover:opacity-70 sm:focus-visible:opacity-70",
+                active && "sm:opacity-70",
               )}
               aria-label={`Close ${label}`}
               onClick={(e) => {

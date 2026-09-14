@@ -77,12 +77,12 @@
 }
 
 .dark {
-  /* Cool charcoal — lifted so it isn’t pitch-black */
-  --background: #171a21;
+  /* Cool charcoal — lifted cards for clearer separation */
+  --background: #15181f;
   --foreground: #eef0f4;
-  --card: #1e222b;
+  --card: #1f242e;
   --card-foreground: #eef0f4;
-  --popover: #252a35;
+  --popover: #262c38;
   --popover-foreground: #eef0f4;
   --primary: #e6ae2e;
   --primary-foreground: #1a1405;
@@ -93,12 +93,12 @@
   --accent: #2a303b;
   --accent-foreground: #eef0f4;
   --destructive: #e85d5d;
-  --border: #343b49;
-  --input: #2f3542;
+  --border: #3a4252;
+  --input: #323948;
   --ring: #e6ae2e;
   --success: #45b89a;
   --warning: #e6ae2e;
-  --sidebar: #13151b;
+  --sidebar: #12141a;
   --sidebar-foreground: #d8dde6;
   --sidebar-primary: #e6ae2e;
   --sidebar-primary-foreground: #1a1405;
@@ -115,11 +115,19 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(
+        ellipse 90% 50% at 50% -20%,
+        rgb(143 107 9 / 0.05),
+        transparent 55%
+      ),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    background-attachment: fixed;
   }
   .dark body {
     background-image: radial-gradient(
       ellipse 120% 55% at 50% -25%,
-      rgb(230 174 46 / 0.06),
+      rgb(230 174 46 / 0.07),
       transparent 60%
     );
   }
@@ -171,9 +179,11 @@
   height: 2px;
   background: linear-gradient(
     90deg,
-    transparent,
-    color-mix(in srgb, var(--primary) 70%, transparent),
-    transparent
+    transparent 8%,
+    color-mix(in srgb, var(--primary) 55%, transparent) 28%,
+    color-mix(in srgb, var(--primary) 85%, transparent) 50%,
+    color-mix(in srgb, var(--primary) 55%, transparent) 72%,
+    transparent 92%
   );
   z-index: 50;
 }

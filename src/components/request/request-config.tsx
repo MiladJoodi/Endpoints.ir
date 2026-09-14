@@ -322,19 +322,6 @@ export function RequestConfig() {
                   body: { ...prev.body, json: e.target.value },
                 }))
               }
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "f") {
-                  e.preventDefault();
-                  try {
-                    setRequest((prev) => ({
-                      ...prev,
-                      body: { ...prev.body, json: formatJson(prev.body.json ?? "") },
-                    }));
-                  } catch {
-                    /* ignore */
-                  }
-                }
-              }}
               className="font-mono-ui min-h-[180px] text-xs leading-relaxed"
               spellCheck={false}
               aria-invalid={Boolean(jsonValidation || jsonError)}

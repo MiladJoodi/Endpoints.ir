@@ -5,12 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Copy, Download, Search, Zap } from "lucide-react";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { formatBytes, formatDuration } from "@/lib/id";
+import { methodColorClass } from "@/lib/http/request";
 import { SAMPLE_USERS_URL } from "@/lib/samples";
 import { jsonTextToTypeScript } from "@/lib/export/json-to-ts";
 import { LARGE_RESPONSE_RENDER_BYTES } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TsTypeView } from "@/components/response/ts-type-view";
 import { cn } from "@/lib/utils";
 
 const JsonTree = dynamic(
@@ -24,10 +26,13 @@ const JsonTree = dynamic(
 );
 
 function statusTone(status: number): string {
-  if (status >= 200 && status < 300) return "text-emerald-700 dark:text-emerald-400";
-  if (status >= 300 && status < 400) return "text-amber-700 dark:text-amber-400";
-  if (status >= 400) return "text-rose-700 dark:text-rose-400";
-  return "text-muted-foreground";
+  if (status >= 200 && status < 300)
+    return "border-emerald-600/25 bg-emerald-600/10 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-300";
+  if (status >= 300 && status < 400)
+    return "border-amber-600/25 bg-amber-600/10 text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300";
+  if (status >= 400)
+    return "border-rose-600/25 bg-rose-600/10 text-rose-800 dark:border-rose-400/30 dark:bg-rose-400/10 dark:text-rose-300";
+  return "border-border bg-muted text-muted-foreground";
 }
 
 function decodeBody(body: string, encoding: "text" | "base64"): string {
@@ -115,84 +120,115 @@ export function ResponseViewer() {
       className="flex h-full min-h-[220px] flex-col overflow-hidden rounded-lg border border-border/60 bg-card shadow-sm dark:shadow-none"
       aria-label="Response"
     >
-      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border/70 px-3 py-2">
-        {response ? (
-          <>
-            <p className={cn("font-mono-ui text-sm font-semibold", statusTone(response.status))}>
-              {response.status} {response.statusText || ""}
-            </p>
-            <p className="font-mono-ui text-xs text-muted-foreground">
-              {formatDuration(response.durationMs)}
-            </p>
-            <p className="font-mono-ui text-xs text-muted-foreground">
-              {formatBytes(response.sizeBytes)}
-              {response.truncated ? " (truncated)" : ""}
-            </p>
-          </>
-        ) : (
-          <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Response
-          </h2>
-        )}
+      <header className="flex flex-col gap-2 border-b border-border/70 px-2.5 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-3 sm:gap-y-2 sm:px-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+          {response ? (
+            <>
+              <p
+                className={cn(
+                  "font-mono-ui inline-flex max-w-full items-center rounded-md border px-2 py-0.5 text-xs font-semibold sm:text-sm",
+                  statusTone(response.status),
+                )}
+              >
+                <span className="truncate">
+                  {response.status} {response.statusText || ""}
+                </span>
+              </p>
+              <p className="font-mono-ui text-xs text-muted-foreground">
+                {formatDuration(response.durationMs)}
+              </p>
+              <p className="font-mono-ui text-xs text-muted-foreground">
+                {formatBytes(response.sizeBytes)}
+                {response.truncated ? " (truncated)" : ""}
+              </p>
+            </>
+          ) : (
+            <h2 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Response
+            </h2>
+          )}
+        </div>
 
         {response ? (
-          <div className="ml-auto flex items-center gap-1">
-            <Button
-              type="button"
-              size="sm"
-              variant={viewMode === "pretty" ? "secondary" : "ghost"}
-              onClick={() => setViewMode("pretty")}
-            >
-              Pretty
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={viewMode === "raw" ? "secondary" : "ghost"}
-              onClick={() => setViewMode("raw")}
-            >
-              Raw
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={viewMode === "type" ? "secondary" : "ghost"}
-              onClick={() => setViewMode("type")}
-              disabled={!isJson}
-              title={isJson ? "JSON as TypeScript types" : "Only available for JSON"}
-            >
-              Type
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              aria-label="Search response"
-              onClick={() => setShowSearch((v) => !v)}
-            >
-              <Search className="size-3.5" />
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              aria-label="Copy response"
-              onClick={() => void navigator.clipboard.writeText(copyTarget)}
-            >
-              <Copy className="size-3.5" />
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              aria-label="Download response"
-              onClick={download}
-            >
-              <Download className="size-3.5" />
-            </Button>
+          <div className="flex min-w-0 flex-wrap items-center gap-1 sm:ml-auto">
+            <div className="flex max-w-full items-center gap-0.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <Button
+                type="button"
+                size="sm"
+                variant={viewMode === "pretty" ? "secondary" : "ghost"}
+                className="shrink-0"
+                onClick={() => setViewMode("pretty")}
+              >
+                Pretty
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={viewMode === "raw" ? "secondary" : "ghost"}
+                className="shrink-0"
+                onClick={() => setViewMode("raw")}
+              >
+                Raw
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={viewMode === "type" ? "secondary" : "ghost"}
+                onClick={() => setViewMode("type")}
+                disabled={!isJson}
+                title={
+                  isJson
+                    ? "Generate TypeScript types from JSON"
+                    : "Only available for JSON"
+                }
+                className="shrink-0 gap-1"
+              >
+                Type
+                <span
+                  className={cn(
+                    "inline-flex items-center rounded-full px-1.5 py-px text-[9px] font-semibold tracking-wide uppercase",
+                    viewMode === "type"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-primary/15 text-primary",
+                    !isJson && "opacity-50",
+                  )}
+                >
+                  New
+                </span>
+              </Button>
+            </div>
+            <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:ml-0">
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                aria-label="Search response"
+                onClick={() => setShowSearch((v) => !v)}
+              >
+                <Search className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                aria-label="Copy response"
+                onClick={() => void navigator.clipboard.writeText(copyTarget)}
+              >
+                <Copy className="size-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                aria-label="Download response"
+                onClick={download}
+              >
+                <Download className="size-3.5" />
+              </Button>
+            </div>
           </div>
         ) : sending ? (
-          <p className="ml-auto text-xs text-muted-foreground" role="status">
+          <p className="text-xs text-muted-foreground sm:ml-auto" role="status">
             Waiting for response…
           </p>
         ) : null}
@@ -213,6 +249,7 @@ export function ResponseViewer() {
       {showSearch && response ? (
         <div className="border-b border-border/70 px-3 py-2">
           <Input
+            clearable
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search in response…"
@@ -223,16 +260,16 @@ export function ResponseViewer() {
       ) : null}
 
       {empty ? (
-        <div className="flex flex-1 flex-col justify-center gap-4 px-5 py-8">
+        <div className="flex flex-1 flex-col items-start justify-center gap-4 px-4 py-8 sm:px-5 sm:py-10">
           {history.length > 0 ? (
             <>
               <div>
-                <p className="text-sm font-medium">Send a request to see the response here.</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Or reopen something from History — the last response is restored when available.
+                <h3 className="text-base font-semibold tracking-tight">No response yet</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Send a request, or reopen one from recent history.
                 </p>
               </div>
-              <div>
+              <div className="w-full max-w-md">
                 <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                   Recent
                 </p>
@@ -244,7 +281,14 @@ export function ResponseViewer() {
                         className="font-mono-ui flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-muted"
                         onClick={() => loadHistoryItem(item)}
                       >
-                        <span className="w-14 shrink-0 font-semibold">{item.method}</span>
+                        <span
+                          className={cn(
+                            "w-14 shrink-0 font-semibold",
+                            methodColorClass(item.method),
+                          )}
+                        >
+                          {item.method}
+                        </span>
                         <span className="truncate text-muted-foreground">{item.url}</span>
                       </button>
                     </li>
@@ -255,29 +299,21 @@ export function ResponseViewer() {
           ) : (
             <>
               <div>
-                <h3 className="text-base font-semibold tracking-tight">
-                  Send your first request
-                </h3>
-                <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  Enter a URL above and press Send. Test any API directly from your browser.
+                <h3 className="text-base font-semibold tracking-tight">No response yet</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Enter a URL and click Send.
                 </p>
               </div>
-              <div>
-                <p className="mb-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                  Try an example
-                </p>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5"
-                  disabled={sending}
-                  onClick={() => void sendSampleUrl(SAMPLE_USERS_URL)}
-                >
-                  <Zap className="size-3.5" />
-                  Sample request
-                </Button>
-              </div>
+              <Button
+                type="button"
+                size="sm"
+                className="gap-1.5"
+                disabled={sending}
+                onClick={() => void sendSampleUrl(SAMPLE_USERS_URL)}
+              >
+                <Zap className="size-3.5" />
+                Try sample request
+              </Button>
             </>
           )}
         </div>
@@ -345,9 +381,7 @@ export function ResponseViewer() {
                 )}
               </div>
             ) : viewMode === "type" ? (
-              <pre className="font-mono-ui whitespace-pre-wrap break-words text-xs leading-relaxed text-foreground">
-                {typeScriptBody}
-              </pre>
+              <TsTypeView code={typeScriptBody} />
             ) : viewMode === "raw" || !isJson ? (
               <pre className="font-mono-ui whitespace-pre-wrap break-all text-xs leading-relaxed">
                 {textBody}
