@@ -194,7 +194,7 @@ export function TopBar({
         <Menu className="size-4" />
       </Button>
 
-      <h1 className="min-w-0 truncate text-[15px] font-bold tracking-tight text-foreground">
+      <h1 className="min-w-0 truncate text-[15px] font-bold tracking-tight text-foreground select-none">
         Endpoints.ir
       </h1>
 
