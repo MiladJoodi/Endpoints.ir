@@ -67,11 +67,11 @@ function SheetContent({
                 variant="ghost"
                 className="absolute top-3 right-3"
                 size="icon-sm"
+                aria-label="Close"
               />
             }
           >
-            <XIcon
-            />
+            <XIcon aria-hidden />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

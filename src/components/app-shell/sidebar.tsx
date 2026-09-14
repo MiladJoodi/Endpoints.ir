@@ -16,13 +16,13 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { Collection, HistoryItem, HttpRequest } from "@/types";
 
@@ -65,7 +65,7 @@ function RequestRow({
   return (
     <div
       className={cn(
-        "group flex items-center rounded-md hover:bg-sidebar-accent",
+        "group flex min-w-0 items-center rounded-md hover:bg-sidebar-accent",
         isActive && "bg-sidebar-accent",
       )}
     >
@@ -86,28 +86,30 @@ function RequestRow({
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger
-          className="inline-flex size-6 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100"
+          className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100"
           aria-label="Request menu"
         >
           <MoreHorizontal className="size-3.5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
-          <DropdownMenuLabel>Move to…</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() => onMove(null)}
-            disabled={!req.folderId}
-          >
-            Collection root
-          </DropdownMenuItem>
-          {folders.map((f) => (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Move to…</DropdownMenuLabel>
             <DropdownMenuItem
-              key={f.id}
-              onClick={() => onMove(f.id)}
-              disabled={req.folderId === f.id}
+              onClick={() => onMove(null)}
+              disabled={!req.folderId}
             >
-              {f.name}
+              Collection root
             </DropdownMenuItem>
-          ))}
+            {folders.map((f) => (
+              <DropdownMenuItem
+                key={f.id}
+                onClick={() => onMove(f.id)}
+                disabled={req.folderId === f.id}
+              >
+                {f.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={onDelete}>
             Delete
@@ -118,7 +120,7 @@ function RequestRow({
         type="button"
         size="icon-xs"
         variant="ghost"
-        className="opacity-0 group-hover:opacity-100"
+        className="shrink-0 opacity-0 group-hover:opacity-100"
         aria-label="Delete request"
         onClick={onDelete}
       >
@@ -204,24 +206,40 @@ export function Sidebar() {
   }, [history, query]);
 
   return (
-    <aside className="flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+    <aside className="flex h-full min-w-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-1 border-b border-sidebar-border p-2">
-        <Tabs
-          value={sidebarTab}
-          onValueChange={(v) => {
-            if (v === "collections" || v === "history") setSidebarTab(v);
-          }}
-          className="flex-1 gap-0"
+        <div
+          role="group"
+          aria-label="Sidebar views"
+          className="inline-flex h-8 w-full items-center justify-center rounded-lg bg-muted p-[3px] text-muted-foreground"
         >
-          <TabsList className="h-8 w-full">
-            <TabsTrigger value="collections" className="flex-1 text-xs">
-              Collections
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex-1 text-xs">
-              History
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          <button
+            type="button"
+            aria-pressed={sidebarTab === "collections"}
+            className={cn(
+              "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md px-1.5 text-xs font-medium transition-all",
+              sidebarTab === "collections"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-foreground/60 hover:text-foreground",
+            )}
+            onClick={() => setSidebarTab("collections")}
+          >
+            Collections
+          </button>
+          <button
+            type="button"
+            aria-pressed={sidebarTab === "history"}
+            className={cn(
+              "inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md px-1.5 text-xs font-medium transition-all",
+              sidebarTab === "history"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-foreground/60 hover:text-foreground",
+            )}
+            onClick={() => setSidebarTab("history")}
+          >
+            History
+          </button>
+        </div>
       </div>
 
       <div className="border-b border-sidebar-border p-2">
@@ -234,7 +252,7 @@ export function Sidebar() {
         />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-2">
+      <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto p-2">
         {sidebarTab === "collections" ? (
           <div className="space-y-1">
             <div className="mb-2 flex items-center justify-between px-1">
@@ -267,7 +285,7 @@ export function Sidebar() {
                 );
                 return (
                   <div key={col.id} className="mb-1">
-                    <div className="group flex items-center gap-0.5 rounded-md px-1 hover:bg-sidebar-accent">
+                    <div className="group flex min-w-0 items-center gap-0.5 rounded-md px-1 hover:bg-sidebar-accent">
                       <button
                         type="button"
                         className="flex min-w-0 flex-1 items-center gap-1 py-1.5 text-left text-sm"
@@ -281,13 +299,15 @@ export function Sidebar() {
                           <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
                         )}
                         <span className="truncate font-medium">{col.name}</span>
-                        <span className="text-[10px] text-muted-foreground">{reqs.length}</span>
+                        <span className="shrink-0 text-[10px] text-muted-foreground">
+                          {reqs.length}
+                        </span>
                       </button>
                       <Button
                         type="button"
                         size="icon-xs"
                         variant="ghost"
-                        className="opacity-0 group-hover:opacity-100"
+                        className="shrink-0 opacity-0 group-hover:opacity-100"
                         aria-label={`Add request to ${col.name}`}
                         onClick={() => void addRequestToCollection(col.id)}
                       >
@@ -295,7 +315,7 @@ export function Sidebar() {
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger
-                          className="inline-flex size-6 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100"
+                          className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100"
                           aria-label="Collection menu"
                         >
                           <MoreHorizontal className="size-3.5" />
@@ -329,7 +349,7 @@ export function Sidebar() {
                       </DropdownMenu>
                     </div>
                     {open ? (
-                      <div className="ml-2 space-y-0.5 border-l border-sidebar-border/70 pl-1">
+                      <div className="ml-2 min-w-0 space-y-0.5 border-l border-sidebar-border/70 pl-1">
                         {folders.map((folder) => {
                           const folderKey = `${col.id}:${folder.id}`;
                           const folderOpen = !folderCollapsed[folderKey];
@@ -371,7 +391,7 @@ export function Sidebar() {
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
-                                    className="inline-flex size-6 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100"
+                                    className="relative inline-flex size-7 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100 after:absolute after:-inset-2 after:content-['']"
                                     aria-label="Folder menu"
                                   >
                                     <MoreHorizontal className="size-3" />

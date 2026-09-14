@@ -13,18 +13,17 @@ export function RequestTabs() {
   return (
     <div
       className="flex items-end gap-0.5 overflow-x-auto border-b border-border/80 bg-muted/30 px-1 pt-1"
-      role="tablist"
+      role="toolbar"
       aria-label="Open requests"
     >
       {tabs.map((tab) => {
         const active = tab.id === activeTabId;
+        const label = tab.request.name || "Untitled";
         return (
           <div
             key={tab.id}
-            role="tab"
-            aria-selected={active}
             className={cn(
-              "group flex max-w-[11rem] shrink-0 items-center gap-1 rounded-t-md border border-b-0 px-2 py-1.5 text-xs",
+              "group flex max-w-[11rem] shrink-0 items-center gap-0.5 rounded-t-md border border-b-0 px-1 py-1 text-xs",
               active
                 ? "border-border/80 bg-background text-foreground"
                 : "border-transparent text-muted-foreground hover:bg-background/60 hover:text-foreground",
@@ -32,7 +31,9 @@ export function RequestTabs() {
           >
             <button
               type="button"
-              className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+              className="flex min-h-8 min-w-0 flex-1 items-center gap-1.5 px-1 text-left"
+              aria-current={active ? "true" : undefined}
+              aria-label={`${tab.request.method} ${label}`}
               onClick={() => setActiveTabId(tab.id)}
             >
               <span
@@ -43,32 +44,34 @@ export function RequestTabs() {
               >
                 {tab.request.method}
               </span>
-              <span className="truncate">{tab.request.name || "Untitled"}</span>
+              <span className="truncate">{label}</span>
             </button>
             <button
               type="button"
               className={cn(
-                "inline-flex size-4 shrink-0 items-center justify-center rounded-sm hover:bg-muted",
-                active ? "opacity-70" : "opacity-0 group-hover:opacity-70",
+                "relative inline-flex size-7 shrink-0 items-center justify-center rounded-sm hover:bg-muted",
+                active ? "opacity-70" : "opacity-0 group-hover:opacity-70 focus-visible:opacity-70",
               )}
-              aria-label={`Close ${tab.request.name || "tab"}`}
+              aria-label={`Close ${label}`}
               onClick={(e) => {
                 e.stopPropagation();
                 closeTab(tab.id);
               }}
             >
-              <X className="size-3" />
+              <X className="size-3.5" />
             </button>
           </div>
         );
       })}
       <button
         type="button"
-        className="mb-0.5 ml-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+        className="mb-0.5 ml-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
         aria-label="New request tab"
         onClick={newRequest}
       >
-        <span className="text-base leading-none">+</span>
+        <span className="text-base leading-none" aria-hidden>
+          +
+        </span>
       </button>
     </div>
   );

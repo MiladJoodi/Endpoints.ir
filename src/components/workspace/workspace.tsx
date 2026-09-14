@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { TopBar } from "@/components/app-shell/top-bar";
 import { Sidebar } from "@/components/app-shell/sidebar";
@@ -7,14 +8,7 @@ import { RequestBar } from "@/components/request/request-bar";
 import { RequestConfig } from "@/components/request/request-config";
 import { ResponseViewer } from "@/components/response/response-viewer";
 import { RequestTabs } from "@/components/workspace/request-tabs";
-import { CommandPalette } from "@/components/command-palette/command-palette";
-import { ImportCurlDialog } from "@/components/dialogs/import-curl-dialog";
-import { ImportCollectionDialog } from "@/components/dialogs/import-collection-dialog";
-import { CodegenDialog } from "@/components/dialogs/codegen-dialog";
-import { EnvironmentsDialog } from "@/components/dialogs/environments-dialog";
-import { SettingsDialog } from "@/components/dialogs/settings-dialog";
 import { ThemeSync } from "@/components/theme-sync";
-import { PromptDialog } from "@/components/dialogs/app-dialogs";
 import {
   useWorkspace,
   WorkspaceProvider,
@@ -42,6 +36,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const CommandPalette = dynamic(
+  () =>
+    import("@/components/command-palette/command-palette").then(
+      (m) => m.CommandPalette,
+    ),
+  { ssr: false },
+);
+const ImportCurlDialog = dynamic(
+  () =>
+    import("@/components/dialogs/import-curl-dialog").then(
+      (m) => m.ImportCurlDialog,
+    ),
+  { ssr: false },
+);
+const ImportCollectionDialog = dynamic(
+  () =>
+    import("@/components/dialogs/import-collection-dialog").then(
+      (m) => m.ImportCollectionDialog,
+    ),
+  { ssr: false },
+);
+const CodegenDialog = dynamic(
+  () =>
+    import("@/components/dialogs/codegen-dialog").then((m) => m.CodegenDialog),
+  { ssr: false },
+);
+const EnvironmentsDialog = dynamic(
+  () =>
+    import("@/components/dialogs/environments-dialog").then(
+      (m) => m.EnvironmentsDialog,
+    ),
+  { ssr: false },
+);
+const SettingsDialog = dynamic(
+  () =>
+    import("@/components/dialogs/settings-dialog").then((m) => m.SettingsDialog),
+  { ssr: false },
+);
+const PromptDialog = dynamic(
+  () =>
+    import("@/components/dialogs/app-dialogs").then((m) => m.PromptDialog),
+  { ssr: false },
+);
 
 function WorkspaceInner() {
   const {
@@ -147,7 +185,7 @@ function WorkspaceInner() {
       />
 
       <div className="flex min-h-0 flex-1">
-        <div className="hidden w-[260px] shrink-0 lg:block">
+        <div className="hidden w-[260px] shrink-0 overflow-hidden lg:block">
           <Sidebar />
         </div>
 

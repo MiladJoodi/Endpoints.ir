@@ -14,12 +14,6 @@ import {
 import { toast } from "sonner";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { requestToCurl } from "@/lib/export/format";
-import {
-  collectionToPostman,
-  collectionsToPostman,
-  createEndpointsBackup,
-  stringifyPretty,
-} from "@/lib/export/postman";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -142,8 +136,14 @@ export function TopBar({
           Env
         </Button>
 
-        <Button type="button" size="sm" variant="ghost" onClick={onSave}>
-          <Save className="size-3.5" />
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          aria-label="Save request"
+          onClick={onSave}
+        >
+          <Save className="size-3.5" aria-hidden />
           <span className="hidden sm:inline">Save</span>
         </Button>
 
@@ -195,7 +195,11 @@ export function TopBar({
               </DropdownMenuItem>
               {activeCollection ? (
                 <DropdownMenuItem
-                  onClick={() => {
+                  onClick={async () => {
+                    const {
+                      collectionToPostman,
+                      stringifyPretty,
+                    } = await import("@/lib/export/postman");
                     downloadText(
                       `${slug(activeCollection.name, "collection")}.postman_collection.json`,
                       stringifyPretty(
@@ -211,7 +215,11 @@ export function TopBar({
               ) : null}
               {collections.length > 0 ? (
                 <DropdownMenuItem
-                  onClick={() => {
+                  onClick={async () => {
+                    const {
+                      collectionsToPostman,
+                      stringifyPretty,
+                    } = await import("@/lib/export/postman");
                     downloadText(
                       "endpoints.postman_collection.json",
                       stringifyPretty(
@@ -226,7 +234,11 @@ export function TopBar({
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuItem
-                onClick={() => {
+                onClick={async () => {
+                  const {
+                    createEndpointsBackup,
+                    stringifyPretty,
+                  } = await import("@/lib/export/postman");
                   downloadText(
                     "endpoints-backup.json",
                     stringifyPretty(
