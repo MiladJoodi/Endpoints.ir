@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import {
@@ -13,10 +13,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -38,6 +41,12 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [resetOpen, setResetOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactHoneypot, setContactHoneypot] = useState("");
+  const [sendingContact, setSendingContact] = useState(false);
 
   const copyEmail = async () => {
     try {
@@ -60,6 +69,45 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       toast.error("Could not reset workspace");
     } finally {
       setResetting(false);
+    }
+  };
+
+  const resetContactForm = () => {
+    setContactName("");
+    setContactEmail("");
+    setContactMessage("");
+    setContactHoneypot("");
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sendingContact) return;
+    setSendingContact(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          message: contactMessage,
+          company: contactHoneypot,
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as
+        | { ok?: boolean; error?: string }
+        | null;
+      if (!res.ok || !data?.ok) {
+        toast.error(data?.error || "Could not send message");
+        return;
+      }
+      toast.success("Message sent");
+      resetContactForm();
+      setContactFormOpen(false);
+    } catch {
+      toast.error("Could not send message");
+    } finally {
+      setSendingContact(false);
     }
   };
 
@@ -86,9 +134,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   custom: "Custom…",
                   ...(![10_000, 30_000, 60_000].includes(preferences.timeoutMs)
                     ? {
-                      [String(preferences.timeoutMs)]:
-                        `${preferences.timeoutMs / 1000} seconds`,
-                    }
+                        [String(preferences.timeoutMs)]:
+                          `${preferences.timeoutMs / 1000} seconds`,
+                      }
                     : {}),
                 }}
                 onValueChange={(value) => {
@@ -122,8 +170,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <p className="text-xs text-muted-foreground">
                 Questions, feedback, or partnership — email us.
               </p>
-              <div>
-                <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex min-w-0 items-center gap-1.5">
                   <a
                     href={`mailto:${CONTACT_EMAIL}`}
                     className="font-mono-ui text-sm font-medium text-foreground underline-offset-4 hover:underline"
@@ -145,6 +193,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     )}
                   </Button>
                 </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setContactFormOpen(true)}
+                >
+                  Send message…
+                </Button>
               </div>
             </div>
 
@@ -176,6 +232,103 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               Done
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={contactFormOpen}
+        onOpenChange={(next) => {
+          setContactFormOpen(next);
+          if (!next) resetContactForm();
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send message</DialogTitle>
+            <DialogDescription>
+              Questions, feedback, or partnership — we will reply by email.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            id="contact-form"
+            className="space-y-3"
+            onSubmit={(e) => void handleContactSubmit(e)}
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-name">Name</Label>
+              <Input
+                id="contact-name"
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                required
+                maxLength={120}
+                autoComplete="name"
+                disabled={sendingContact}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-email">Email</Label>
+              <Input
+                id="contact-email"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                required
+                maxLength={254}
+                autoComplete="email"
+                disabled={sendingContact}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-message">Message</Label>
+              <Textarea
+                id="contact-message"
+                value={contactMessage}
+                onChange={(e) => setContactMessage(e.target.value)}
+                required
+                maxLength={4000}
+                rows={4}
+                disabled={sendingContact}
+                className="min-h-24 resize-y"
+              />
+            </div>
+            <input
+              type="text"
+              name="company"
+              value={contactHoneypot}
+              onChange={(e) => setContactHoneypot(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden
+              className="absolute -left-[9999px] h-0 w-0 opacity-0"
+            />
+          </form>
+
+          <DialogFooter className="mx-0 mb-0 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={sendingContact}
+              onClick={() => setContactFormOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="contact-form"
+              disabled={sendingContact}
+            >
+              {sendingContact ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Sending…
+                </>
+              ) : (
+                "Send"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
