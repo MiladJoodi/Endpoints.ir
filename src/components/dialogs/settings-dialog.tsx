@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { PromptDialog } from "@/components/dialogs/app-dialogs";
 import { Button } from "@/components/ui/button";
@@ -11,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -20,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CONTACT_EMAIL } from "@/components/dialogs/contact-dialog";
+
+const CONTACT_EMAIL = "info@endpoints.ir";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -30,6 +32,18 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { preferences, setPreferences } = useWorkspace();
   const [customTimeoutOpen, setCustomTimeoutOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(CONTACT_EMAIL);
+      setCopied(true);
+      toast.success("Email copied");
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Could not copy email");
+    }
+  };
 
   return (
     <>
@@ -85,28 +99,38 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="timeout-display">Current timeout (ms)</Label>
-              <Input
-                id="timeout-display"
-                readOnly
-                value={preferences.timeoutMs}
-                className="font-mono-ui"
-              />
-            </div>
-
             <div className="space-y-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-3">
               <Label>Contact us</Label>
               <p className="text-xs text-muted-foreground">
-                Email{" "}
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="font-mono-ui font-medium text-foreground underline-offset-4 hover:underline"
-                >
-                  {CONTACT_EMAIL}
-                </a>
-                . A contact form will be available later.
+                Questions, feedback, or partnership — email us.
               </p>
+              <div>
+                <p className="mb-1 text-xs font-medium text-muted-foreground">
+                  Email
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={`mailto:${CONTACT_EMAIL}`}
+                    className="font-mono-ui text-sm font-medium text-foreground underline-offset-4 hover:underline"
+                  >
+                    {CONTACT_EMAIL}
+                  </a>
+                  <Button
+                    type="button"
+                    size="icon-xs"
+                    variant="ghost"
+                    className="size-6 shrink-0 text-muted-foreground hover:text-foreground"
+                    aria-label={copied ? "Copied" : "Copy email"}
+                    onClick={() => void copyEmail()}
+                  >
+                    {copied ? (
+                      <Check className="size-3.5" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <p className="text-xs text-muted-foreground">

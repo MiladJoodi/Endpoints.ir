@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   Download,
-  Mail,
   Menu,
   MoreHorizontal,
   Moon,
@@ -33,7 +32,6 @@ interface TopBarProps {
   onGenerateCode: () => void;
   onEnvironments: () => void;
   onSettings: () => void;
-  onContact: () => void;
   onSave: () => void;
 }
 
@@ -47,7 +45,6 @@ export function TopBar({
   onGenerateCode,
   onEnvironments,
   onSettings,
-  onContact,
   onSave,
 }: TopBarProps) {
   const {
@@ -287,16 +284,6 @@ export function TopBar({
             type="button"
             size="icon-sm"
             variant="ghost"
-            aria-label="Contact us"
-            onClick={onContact}
-          >
-            <Mail className="size-3.5" />
-          </Button>
-
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="ghost"
             aria-label="Settings"
             onClick={onSettings}
           >
@@ -336,7 +323,6 @@ export function TopBar({
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={toggleTheme}>{themeLabel}</DropdownMenuItem>
                 <DropdownMenuItem onClick={onSettings}>Settings…</DropdownMenuItem>
-                <DropdownMenuItem onClick={onContact}>Contact us…</DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>

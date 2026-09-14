@@ -67,11 +67,6 @@ const SettingsDialog = dynamic(
     import("@/components/dialogs/settings-dialog").then((m) => m.SettingsDialog),
   { ssr: false },
 );
-const ContactDialog = dynamic(
-  () =>
-    import("@/components/dialogs/contact-dialog").then((m) => m.ContactDialog),
-  { ssr: false },
-);
 const PromptDialog = dynamic(
   () =>
     import("@/components/dialogs/app-dialogs").then((m) => m.PromptDialog),
@@ -96,7 +91,6 @@ function WorkspaceInner() {
   const [codegenOpen, setCodegenOpen] = useState(false);
   const [envOpen, setEnvOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveCollectionId, setSaveCollectionId] = useState<string>("");
@@ -131,7 +125,6 @@ function WorkspaceInner() {
         onGenerateCode={() => setCodegenOpen(true)}
         onEnvironments={() => setEnvOpen(true)}
         onSettings={() => setSettingsOpen(true)}
-        onContact={() => setContactOpen(true)}
         onSave={() => void handleQuickSave()}
       />
 
@@ -227,7 +220,6 @@ function WorkspaceInner() {
       <CodegenDialog open={codegenOpen} onOpenChange={setCodegenOpen} />
       <EnvironmentsDialog open={envOpen} onOpenChange={setEnvOpen} />
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
-      <ContactDialog open={contactOpen} onOpenChange={setContactOpen} />
 
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogContent className="sm:max-w-md">
