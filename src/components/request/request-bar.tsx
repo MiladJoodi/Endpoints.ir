@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, RotateCcw, Send, Square, Zap } from "lucide-react";
+import { Loader2, Send, Square, Zap } from "lucide-react";
 import { HTTP_METHODS, type HttpMethod } from "@/types";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { methodColorClass, syncParamsFromUrl } from "@/lib/http/request";
@@ -23,7 +23,6 @@ export function RequestBar() {
     sendRequest,
     sendSampleUrl,
     cancelRequest,
-    resetRequest,
     sending,
     unresolvedVars,
   } = useWorkspace();
@@ -120,19 +119,6 @@ export function RequestBar() {
         </div>
 
         <div className="flex shrink-0 items-stretch gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 flex-1 sm:flex-none sm:px-3"
-            aria-label="Reset request"
-            title="Clear URL, params, headers, body, and response"
-            disabled={sending}
-            onClick={resetRequest}
-          >
-            <RotateCcw className="size-3.5" />
-            Reset
-          </Button>
-
           {sending ? (
             <Button
               type="button"
