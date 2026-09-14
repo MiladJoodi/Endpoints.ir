@@ -300,7 +300,7 @@ function WorkspaceInner() {
         onConfirm={async (name) => {
           const col = await createCollection(name);
           setSaveCollectionId(col.id);
-          await saveRequest(col.id, saveName || request.name || "Untitled request", {
+          await saveRequest(col.id, saveName || request.name || "Untitled", {
             asNew: saveAsNew,
           });
           setJustSaved(true);

@@ -43,7 +43,7 @@ function tabFromRequest(
 }
 
 export function createDefaultSession(): EditorSession {
-  const request = createEmptyRequest({ name: "Untitled request" });
+  const request = createEmptyRequest({ name: "Untitled" });
   const tab = tabFromRequest(request);
   return {
     version: 3,

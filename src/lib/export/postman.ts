@@ -364,7 +364,7 @@ function httpRequestToPostmanItem(request: HttpRequest): PostmanItem {
   })();
 
   return {
-    name: request.name || "Untitled request",
+    name: request.name || "Untitled",
     request: {
       method: request.method,
       header: headers,

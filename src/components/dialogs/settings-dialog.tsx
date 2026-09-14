@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import { PromptDialog } from "@/components/dialogs/app-dialogs";
+import {
+  ConfirmDialog,
+  PromptDialog,
+} from "@/components/dialogs/app-dialogs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,8 +33,10 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { preferences, setPreferences } = useWorkspace();
+  const { preferences, setPreferences, resetWorkspace } = useWorkspace();
   const [customTimeoutOpen, setCustomTimeoutOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const copyEmail = async () => {
@@ -42,6 +47,19 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
       toast.error("Could not copy email");
+    }
+  };
+
+  const handleResetWorkspace = async () => {
+    setResetting(true);
+    try {
+      await resetWorkspace();
+      toast.success("Workspace reset");
+      onOpenChange(false);
+    } catch {
+      toast.error("Could not reset workspace");
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -133,6 +151,23 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </div>
             </div>
 
+            <div className="space-y-2 rounded-lg border border-destructive/25 bg-destructive/5 px-3 py-3">
+              <Label>Reset workspace</Label>
+              <p className="text-xs text-muted-foreground">
+                Permanently deletes collections, requests, history, environments,
+                and settings on this device. Theme is kept.
+              </p>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={resetting}
+                onClick={() => setResetOpen(true)}
+              >
+                Reset everything…
+              </Button>
+            </div>
+
             <p className="text-xs text-muted-foreground">
               Endpoints is local-first. Collections, history, and environments are stored in
               IndexedDB on this device.
@@ -160,6 +195,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           if (!Number.isFinite(seconds) || seconds <= 0) return;
           setPreferences({ timeoutMs: Math.round(seconds * 1000) });
         }}
+      />
+
+      <ConfirmDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        title="Reset workspace?"
+        description="This permanently deletes collections, requests, history, environments, and settings on this device. Your theme is kept. This cannot be undone."
+        confirmLabel="Reset everything"
+        destructive
+        onConfirm={() => void handleResetWorkspace()}
       />
     </>
   );

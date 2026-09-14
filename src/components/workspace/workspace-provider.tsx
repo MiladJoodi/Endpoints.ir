@@ -77,8 +77,6 @@ interface WorkspaceContextValue {
   sendRequest: () => Promise<void>;
   cancelRequest: () => void;
   newRequest: () => void;
-  /** Clear editor fields + response on the active tab (keeps id / collection). */
-  resetRequest: () => void;
   loadRequest: (req: HttpRequest) => void;
   saveRequest: (
     collectionId?: string,
@@ -117,6 +115,8 @@ interface WorkspaceContextValue {
   deleteEnvironment: (id: string) => Promise<void>;
   setActiveEnvironmentId: (id: string | null) => void;
   clearHistory: () => Promise<void>;
+  /** Wipe all local data: collections, requests, history, environments, session. */
+  resetWorkspace: () => Promise<void>;
   deleteHistoryItem: (id: string) => Promise<void>;
   loadHistoryItem: (item: HistoryItem) => void;
   applyExampleUrl: (url: string) => void;
@@ -180,7 +180,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return tabs.find((t) => t.id === activeTabId) ?? tabs[0] ?? null;
   }, [tabs, activeTabId]);
 
-  const request = activeTab?.request ?? createEmptyRequest({ name: "Untitled request" });
+  const request = activeTab?.request ?? createEmptyRequest({ name: "Untitled" });
   const response = activeTab?.response ?? null;
   const sendError = activeTab?.sendError ?? null;
   const assertionResults = activeTab?.assertionResults;
@@ -317,7 +317,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       if (idx < 0) return prev;
       const next = prev.filter((t) => t.id !== tabId);
       if (next.length === 0) {
-        const draft = makeTab(createEmptyRequest({ name: "Untitled request" }));
+        const draft = makeTab(createEmptyRequest({ name: "Untitled" }));
         setActiveTabIdState(draft.id);
         return [draft];
       }
@@ -334,7 +334,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     (updater: HttpRequest | ((prev: HttpRequest) => HttpRequest)) => {
       setTabs((prev) => {
         if (prev.length === 0) {
-          const base = createEmptyRequest({ name: "Untitled request" });
+          const base = createEmptyRequest({ name: "Untitled" });
           const next = typeof updater === "function" ? updater(base) : updater;
           const updated: HttpRequest = { ...next, updatedAt: Date.now() };
           const tab = makeTab(updated);
@@ -478,7 +478,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     async (collectionId: string, folderId?: string | null) => {
       const req: HttpRequest = {
         ...createEmptyRequest(),
-        name: "Untitled request",
+        name: "Untitled",
         collectionId,
         folderId: folderId ?? undefined,
       };
@@ -504,7 +504,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const draft = makeTab(createEmptyRequest({ name: "Untitled request" }));
+    const draft = makeTab(createEmptyRequest({ name: "Untitled" }));
     setTabs((prev) => [...prev, draft]);
     setActiveTabIdState(draft.id);
     setMobileSidebarOpen(false);
@@ -550,27 +550,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       updatedAt: Date.now(),
     }));
     patchActiveTab({ sendError: null });
-  }, [setRequest, patchActiveTab]);
-
-  const resetRequest = useCallback(() => {
-    abortRef.current?.abort();
-    sendingRef.current = false;
-    setSending(false);
-    setRequest((prev) => {
-      const blank = createEmptyRequest({
-        id: prev.id,
-        name: prev.name || "Untitled request",
-        collectionId: prev.collectionId,
-        folderId: prev.folderId,
-        createdAt: prev.createdAt,
-      });
-      return { ...blank, updatedAt: Date.now() };
-    });
-    patchActiveTab({
-      response: null,
-      sendError: null,
-      assertionResults: undefined,
-    });
   }, [setRequest, patchActiveTab]);
 
   const sendSampleUrl = useCallback(
@@ -889,7 +868,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       const toSave: HttpRequest = {
         ...current,
         id: asNew ? createId() : current.id,
-        name: name?.trim() || current.name || "Untitled request",
+        name: name?.trim() || current.name || "Untitled",
         collectionId: targetCollectionId,
         createdAt: asNew ? Date.now() : current.createdAt,
         updatedAt: Date.now(),
@@ -1220,6 +1199,39 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setHistory([]);
   }, []);
 
+  const resetWorkspace = useCallback(async () => {
+    abortRef.current?.abort();
+    sendingRef.current = false;
+    setSending(false);
+    if (persistRequestTimer.current) {
+      clearTimeout(persistRequestTimer.current);
+      persistRequestTimer.current = null;
+    }
+    if (persistSessionTimer.current) {
+      clearTimeout(persistSessionTimer.current);
+      persistSessionTimer.current = null;
+    }
+
+    const keptTheme = preferences.theme;
+    const nextPrefs = { ...defaultPreferences, theme: keptTheme };
+
+    await db.clearAllStores();
+    savePreferences(nextPrefs);
+
+    const session = createDefaultSession();
+    setCollections([]);
+    setSavedRequests([]);
+    setHistory([]);
+    setEnvironments([]);
+    setPreferencesState(nextPrefs);
+    setTabs(session.tabs);
+    setActiveTabIdState(session.activeTabId);
+    setSidebarTab("collections");
+    setMobileSidebarOpen(false);
+
+    await saveEditorSession(session);
+  }, [preferences.theme]);
+
   const deleteHistoryItem = useCallback(async (id: string) => {
     await db.remove("history", id);
     setHistory((prev) => prev.filter((h) => h.id !== id));
@@ -1252,7 +1264,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     sendRequest,
     cancelRequest,
     newRequest,
-    resetRequest,
     loadRequest,
     saveRequest,
     quickSaveRequest,
@@ -1272,6 +1283,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     deleteEnvironment,
     setActiveEnvironmentId,
     clearHistory,
+    resetWorkspace,
     deleteHistoryItem,
     loadHistoryItem,
     applyExampleUrl,

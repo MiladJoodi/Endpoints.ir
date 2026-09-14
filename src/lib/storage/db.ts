@@ -97,6 +97,16 @@ export async function clearStore(store: StoreName): Promise<void> {
   await txDone(transaction);
 }
 
+export async function clearAllStores(): Promise<void> {
+  await Promise.all([
+    clearStore("collections"),
+    clearStore("requests"),
+    clearStore("history"),
+    clearStore("environments"),
+    clearStore("meta"),
+  ]);
+}
+
 export async function getMeta<T>(key: string): Promise<T | undefined> {
   const db = await openDb();
   return new Promise((resolve, reject) => {

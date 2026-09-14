@@ -11,7 +11,7 @@ export function createEmptyRequest(partial?: Partial<HttpRequest>): HttpRequest 
   const now = Date.now();
   return {
     id: createId(),
-    name: "Untitled request",
+    name: "Untitled",
     method: "GET",
     url: "",
     params: [createPair()],
