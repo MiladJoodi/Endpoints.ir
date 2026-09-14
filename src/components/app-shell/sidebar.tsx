@@ -356,7 +356,7 @@ export function Sidebar() {
                           const folderReqs = reqs.filter((r) => r.folderId === folder.id);
                           return (
                             <div key={folder.id}>
-                              <div className="group flex items-center gap-0.5 rounded-md px-1 hover:bg-sidebar-accent">
+                              <div className="group flex min-w-0 items-center gap-0.5 rounded-md px-1 hover:bg-sidebar-accent">
                                 <button
                                   type="button"
                                   className="flex min-w-0 flex-1 items-center gap-1 py-1 text-left text-xs"
@@ -381,7 +381,7 @@ export function Sidebar() {
                                   type="button"
                                   size="icon-xs"
                                   variant="ghost"
-                                  className="opacity-0 group-hover:opacity-100"
+                                  className="shrink-0 opacity-0 group-hover:opacity-100"
                                   aria-label={`Add request to ${folder.name}`}
                                   onClick={() =>
                                     void addRequestToCollection(col.id, folder.id)
@@ -391,7 +391,7 @@ export function Sidebar() {
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
-                                    className="relative inline-flex size-7 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100 after:absolute after:-inset-2 after:content-['']"
+                                    className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-0 hover:bg-muted group-hover:opacity-100"
                                     aria-label="Folder menu"
                                   >
                                     <MoreHorizontal className="size-3" />
@@ -432,7 +432,7 @@ export function Sidebar() {
                               </div>
                               {folderOpen
                                 ? folderReqs.map((req) => (
-                                    <div key={req.id} className="ml-3">
+                                    <div key={req.id} className="ml-3 min-w-0">
                                       <RequestRow
                                         req={req}
                                         collection={col}
@@ -503,7 +503,7 @@ export function Sidebar() {
                       }
                       return (
                         <li key={item.id}>
-                          <div className="group relative flex items-stretch rounded-md hover:bg-[var(--surface-hover)]">
+                          <div className="group relative flex min-w-0 items-stretch rounded-md hover:bg-[var(--surface-hover)]">
                             <button
                               type="button"
                               className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left"
@@ -532,7 +532,7 @@ export function Sidebar() {
                               type="button"
                               size="icon-xs"
                               variant="ghost"
-                              className="my-auto mr-1 opacity-0 group-hover:opacity-100"
+                              className="my-auto mr-1 shrink-0 opacity-0 group-hover:opacity-100"
                               aria-label="Delete history item"
                               onClick={() => void deleteHistoryItem(item.id)}
                             >
